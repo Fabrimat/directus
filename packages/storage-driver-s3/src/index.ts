@@ -4,7 +4,6 @@ import type {
 	ListObjectsV2CommandInput,
 	ObjectCannedACL,
 	PutObjectCommandInput,
-	S3ClientConfig,
 	ServerSideEncryption,
 } from '@aws-sdk/client-s3';
 import {

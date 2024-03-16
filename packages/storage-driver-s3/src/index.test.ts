@@ -72,6 +72,7 @@ beforeEach(() => {
 			serverSideEncryption: randWord(),
 			root: randDirectoryPath(),
 			endpoint: randDomainName(),
+			readEndpoint: randDomainName(),
 			region: randWord(),
 			forcePathStyle: randBoolean(),
 		},

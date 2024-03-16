@@ -24,6 +24,7 @@ import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
+import type { CustomS3ClientConfig } from './custom-s3-client-config.js';
 
 export type DriverS3Config = {
 	root?: string;
@@ -33,6 +34,7 @@ export type DriverS3Config = {
 	acl?: ObjectCannedACL;
 	serverSideEncryption?: ServerSideEncryption;
 	endpoint?: string;
+	readEndpoint?: string;
 	region?: string;
 	forcePathStyle?: boolean;
 };
@@ -40,15 +42,17 @@ export type DriverS3Config = {
 export class DriverS3 implements Driver {
 	private config: DriverS3Config;
 	private client: S3Client;
+	private readClient: S3Client;
 	private root: string;
 
 	constructor(config: DriverS3Config) {
 		this.config = config;
 		this.client = this.getClient();
+		this.readClient = this.getClient(true);
 		this.root = this.config.root ? normalizePath(this.config.root, { removeLeading: true }) : '';
 	}
 
-	private getClient() {
+	private getClient(read?: boolean) {
 		/*
 		 * AWS' client default socket reusing can cause performance issues when using it very
 		 * often in rapid succession, hitting the maxSockets limit of 50.
@@ -59,7 +63,7 @@ export class DriverS3 implements Driver {
 		const maxSockets = 500;
 		const keepAlive = true;
 
-		const s3ClientConfig: S3ClientConfig = {
+		const s3ClientConfig: CustomS3ClientConfig = {
 			requestHandler: new NodeHttpHandler({
 				connectionTimeout,
 				socketTimeout,
@@ -79,16 +83,30 @@ export class DriverS3 implements Driver {
 			};
 		}
 
-		if (this.config.endpoint) {
-			const protocol = this.config.endpoint.startsWith('http://') ? 'http:' : 'https:';
-			const hostname = this.config.endpoint.replace('https://', '').replace('http://', '');
+		if (!read) {
+			if (this.config.endpoint) {
+				const protocol = this.config.endpoint.startsWith('http://') ? 'http:' : 'https:';
+				const hostname = this.config.endpoint.replace('https://', '').replace('http://', '');
 
-			s3ClientConfig.endpoint = {
-				hostname,
-				protocol,
-				path: '/',
-			};
+				s3ClientConfig.endpoint = {
+					hostname,
+					protocol,
+					path: '/',
+				};
+			}
+		} else {
+			if (this.config.readEndpoint) {
+				const protocol = this.config.readEndpoint.startsWith('http://') ? 'http:' : 'https:';
+				const hostname = this.config.readEndpoint.replace('https://', '').replace('http://', '');
+
+				s3ClientConfig.readEndpoint = {
+					hostname,
+					protocol,
+					path: '/',
+				};
+			}
 		}
+
 
 		if (this.config.region) {
 			s3ClientConfig.region = this.config.region;
@@ -115,7 +133,7 @@ export class DriverS3 implements Driver {
 			commandInput.Range = `bytes=${range.start ?? ''}-${range.end ?? ''}`;
 		}
 
-		const { Body: stream } = await this.client.send(new GetObjectCommand(commandInput));
+		const { Body: stream } = await this.readClient.send(new GetObjectCommand(commandInput));
 
 		if (!stream || !isReadableStream(stream)) {
 			throw new Error(`No stream returned for file "${filepath}"`);

@@ -4,6 +4,7 @@ import type {
 	ListObjectsV2CommandInput,
 	ObjectCannedACL,
 	PutObjectCommandInput,
+	S3ClientConfig,
 	ServerSideEncryption,
 } from '@aws-sdk/client-s3';
 import {
@@ -23,7 +24,6 @@ import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
-import type { CustomS3ClientConfig } from './custom-s3-client-config.js';
 
 export type DriverS3Config = {
 	root?: string;
@@ -62,7 +62,7 @@ export class DriverS3 implements Driver {
 		const maxSockets = 500;
 		const keepAlive = true;
 
-		const s3ClientConfig: CustomS3ClientConfig = {
+		const s3ClientConfig: S3ClientConfig = {
 			requestHandler: new NodeHttpHandler({
 				connectionTimeout,
 				socketTimeout,
@@ -92,17 +92,21 @@ export class DriverS3 implements Driver {
 					protocol,
 					path: '/',
 				};
+			} else {
+				console.log("S3 Endpoint not found")
 			}
 		} else {
 			if (this.config.readEndpoint) {
 				const protocol = this.config.readEndpoint.startsWith('http://') ? 'http:' : 'https:';
 				const hostname = this.config.readEndpoint.replace('https://', '').replace('http://', '');
 
-				s3ClientConfig.readEndpoint = {
+				s3ClientConfig.endpoint = {
 					hostname,
 					protocol,
 					path: '/',
 				};
+			} else {
+				console.log("S3 Read Endpoint not found")
 			}
 		}
 

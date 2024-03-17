@@ -24,7 +24,6 @@ import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
-import axios from 'axios';
 
 export type DriverS3Config = {
 	root?: string;
@@ -125,13 +124,13 @@ export class DriverS3 implements Driver {
 		let stream: any;
 
 		if (this.readEndpoint) {
-			const response = await axios.get(this.readEndpoint + this.fullPath(filepath), {
+			const response = await fetch(this.readEndpoint + this.fullPath(filepath), {
 				headers: {
 					responseType: 'stream',
 					range: `bytes=${range.start ?? ''}-${range.end ?? ''}`
 				}});
 
-			stream = response.data;
+			stream = response.body;
 		} else {
 
 

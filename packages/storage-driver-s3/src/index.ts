@@ -23,7 +23,7 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import { join } from 'node:path';
-import type { Readable } from 'node:stream';
+import { Readable } from 'node:stream';
 
 export type DriverS3Config = {
 	root?: string;
@@ -125,11 +125,10 @@ export class DriverS3 implements Driver {
 		if (this.readEndpoint) {
 			const response = await fetch(this.readEndpoint + "/" + this.fullPath(filepath), {
 				headers: {
-					responseType: 'stream',
 					...range && {range: `bytes=${range.start ?? ''}-${range.end ?? ''}`}
 				}});
 
-			stream = response.body;
+			stream = new Readable().wrap(response.body);
 		} else {
 
 

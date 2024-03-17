@@ -27,6 +27,7 @@ export const createEnv = (): Env => {
 			try {
 				value = readFileSync(value, { encoding: 'utf8' });
 				key = removeFileSuffix(key);
+				console.log("Read " + key + " variable with value: " + value);
 			} catch {
 				throw new Error(`Failed to read value from file "${value}", defined in environment variable "${key}".`);
 			}

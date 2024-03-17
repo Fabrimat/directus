@@ -38,6 +38,7 @@ export type DriverS3Config = {
 	forcePathStyle?: boolean;
 };
 
+
 export class DriverS3 implements Driver {
 	private config: DriverS3Config;
 	private client: S3Client;
@@ -46,6 +47,9 @@ export class DriverS3 implements Driver {
 
 	constructor(config: DriverS3Config) {
 		this.config = config;
+		console.log("S3 Config: " + config);
+		console.log("S3 Endpoint: " + this.config.endpoint);
+		console.log("S3 Read Endpoint: " + this.config.readEndpoint);
 		this.client = this.getClient();
 		this.readClient = this.getClient(true);
 		this.root = this.config.root ? normalizePath(this.config.root, { removeLeading: true }) : '';

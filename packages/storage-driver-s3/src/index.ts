@@ -47,7 +47,6 @@ export class DriverS3 implements Driver {
 
 	constructor(config: DriverS3Config) {
 		this.config = config;
-		console.log("S3 Config: " + config);
 		console.log("S3 Endpoint: " + this.config.endpoint);
 		console.log("S3 Read Endpoint: " + this.config.readEndpoint);
 		this.client = this.getClient();
@@ -124,7 +123,7 @@ export class DriverS3 implements Driver {
 		let stream: any;
 
 		if (this.readEndpoint) {
-			const response = await fetch(this.readEndpoint + this.fullPath(filepath), {
+			const response = await fetch(this.readEndpoint + "/" + this.fullPath(filepath), {
 				headers: {
 					responseType: 'stream',
 					...range && {range: `bytes=${range.start ?? ''}-${range.end ?? ''}`}

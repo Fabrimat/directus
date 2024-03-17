@@ -24,6 +24,7 @@ import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import { join } from 'node:path';
 import type { Readable } from 'node:stream';
+import axios from 'axios';
 
 export type DriverS3Config = {
 	root?: string;
@@ -42,7 +43,7 @@ export type DriverS3Config = {
 export class DriverS3 implements Driver {
 	private config: DriverS3Config;
 	private client: S3Client;
-	private readClient: S3Client;
+	private readEndpoint: string;
 	private root: string;
 
 	constructor(config: DriverS3Config) {
@@ -51,11 +52,16 @@ export class DriverS3 implements Driver {
 		console.log("S3 Endpoint: " + this.config.endpoint);
 		console.log("S3 Read Endpoint: " + this.config.readEndpoint);
 		this.client = this.getClient();
-		this.readClient = this.getClient(true);
 		this.root = this.config.root ? normalizePath(this.config.root, { removeLeading: true }) : '';
+
+		if (this.config.readEndpoint) {
+			const protocol = this.config.readEndpoint.startsWith('http://') ? 'http:' : 'https:';
+			const hostname = this.config.readEndpoint.replace('https://', '').replace('http://', '');
+			this.readEndpoint = protocol + hostname;
+		}
 	}
 
-	private getClient(read?: boolean) {
+	private getClient() {
 		/*
 		 * AWS' client default socket reusing can cause performance issues when using it very
 		 * often in rapid succession, hitting the maxSockets limit of 50.
@@ -86,32 +92,17 @@ export class DriverS3 implements Driver {
 			};
 		}
 
-		if (!read) {
-			if (this.config.endpoint) {
-				const protocol = this.config.endpoint.startsWith('http://') ? 'http:' : 'https:';
-				const hostname = this.config.endpoint.replace('https://', '').replace('http://', '');
+		if (this.config.endpoint) {
+			const protocol = this.config.endpoint.startsWith('http://') ? 'http:' : 'https:';
+			const hostname = this.config.endpoint.replace('https://', '').replace('http://', '');
 
-				s3ClientConfig.endpoint = {
-					hostname,
-					protocol,
-					path: '/',
-				};
-			} else {
-				console.log("S3 Endpoint not found")
-			}
+			s3ClientConfig.endpoint = {
+				hostname,
+				protocol,
+				path: '/',
+			};
 		} else {
-			if (this.config.readEndpoint) {
-				const protocol = this.config.readEndpoint.startsWith('http://') ? 'http:' : 'https:';
-				const hostname = this.config.readEndpoint.replace('https://', '').replace('http://', '');
-
-				s3ClientConfig.endpoint = {
-					hostname,
-					protocol,
-					path: '/',
-				};
-			} else {
-				console.log("S3 Read Endpoint not found")
-			}
+			console.log("S3 Endpoint not found")
 		}
 
 
@@ -131,19 +122,34 @@ export class DriverS3 implements Driver {
 	}
 
 	async read(filepath: string, range?: Range): Promise<Readable> {
-		const commandInput: GetObjectCommandInput = {
-			Key: this.fullPath(filepath),
-			Bucket: this.config.bucket,
-		};
+		let stream: any;
 
-		if (range) {
-			commandInput.Range = `bytes=${range.start ?? ''}-${range.end ?? ''}`;
+		if (this.readEndpoint) {
+			const response = await axios.get(this.readEndpoint + this.fullPath(filepath), {
+				headers: {
+					responseType: 'stream',
+					range: `bytes=${range.start ?? ''}-${range.end ?? ''}`
+				}});
+
+			stream = response.data;
+		} else {
+
+
+			const commandInput: GetObjectCommandInput = {
+				Key: this.fullPath(filepath),
+				Bucket: this.config.bucket,
+			};
+
+			if (range) {
+				commandInput.Range = `bytes=${range.start ?? ''}-${range.end ?? ''}`;
+			}
+
+			const { Body: body } = await this.client.send(new GetObjectCommand(commandInput));
+			stream = body;
 		}
 
-		const { Body: stream } = await this.readClient.send(new GetObjectCommand(commandInput));
-
 		if (!stream || !isReadableStream(stream)) {
-			throw new Error(`No stream returned for file "${filepath}"`);
+			throw new Error(`No stream returned for file "${this.fullPath(filepath)}"`);
 		}
 
 		return stream as Readable;

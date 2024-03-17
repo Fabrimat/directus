@@ -127,7 +127,7 @@ export class DriverS3 implements Driver {
 			const response = await fetch(this.readEndpoint + this.fullPath(filepath), {
 				headers: {
 					responseType: 'stream',
-					range: `bytes=${range.start ?? ''}-${range.end ?? ''}`
+					...range && {range: `bytes=${range.start ?? ''}-${range.end ?? ''}`}
 				}});
 
 			stream = response.body;

@@ -119,6 +119,24 @@ export class DriverS3 implements Driver {
 		return normalizePath(join(this.root, filepath));
 	}
 
+	private async convertToReadable(uint8ArrayStream: ReadableStream<Uint8Array>): Promise<Readable> {
+		return Readable.from({
+			async *[Symbol.asyncIterator]() {
+				const reader = uint8ArrayStream.getReader();
+
+				try {
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) break;
+						yield Buffer.from(value);
+					}
+				} finally {
+					reader.releaseLock();
+				}
+			}
+		});
+	}
+
 	async read(filepath: string, range?: Range): Promise<Readable> {
 		let stream: any;
 
@@ -128,7 +146,9 @@ export class DriverS3 implements Driver {
 					...range && {range: `bytes=${range.start ?? ''}-${range.end ?? ''}`}
 				}});
 
-			stream = new Readable().wrap(response.body);
+			if (response.body) {
+				stream = await this.convertToReadable(response.body);
+			}
 		} else {
 
 

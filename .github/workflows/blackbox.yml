@@ -3,7 +3,6 @@ name: Blackbox Tests
 on:
   push:
     branches:
-      - main
       - next
     paths:
       - api/**

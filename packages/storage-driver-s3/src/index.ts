@@ -150,8 +150,6 @@ export class DriverS3 implements Driver {
 				stream = await this.convertToReadable(response.body);
 			}
 		} else {
-
-
 			const commandInput: GetObjectCommandInput = {
 				Key: this.fullPath(filepath),
 				Bucket: this.config.bucket,

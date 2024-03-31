@@ -10,6 +10,7 @@ type ImageSelection = {
 	lazy?: boolean;
 	width?: number;
 	height?: number;
+	transform?: boolean;
 	transformationKey?: string | null;
 	previewUrl?: string;
 };
@@ -68,6 +69,7 @@ export default function useImage(
 				const imageUrlParams = imageUrl ? new URL(imageUrl).searchParams : undefined;
 				const alt = node.getAttribute('alt');
 				const lazy = node.getAttribute('loading') === 'lazy';
+				const transform = !!imageUrlParams?.get('width') || !!imageUrlParams?.get('height');
 				const width = Number(imageUrlParams?.get('width') || node.getAttribute('width') || undefined) || undefined;
 				const height = Number(imageUrlParams?.get('height') || node.getAttribute('height') || undefined) || undefined;
 				const transformationKey = imageUrlParams?.get('key') || undefined;
@@ -86,6 +88,7 @@ export default function useImage(
 					imageUrl,
 					alt,
 					lazy,
+					transform,
 					width: selectedPreset.value ? selectedPreset.value.width ?? undefined : width,
 					height: selectedPreset.value ? selectedPreset.value.height ?? undefined : height,
 					transformationKey,
@@ -122,6 +125,7 @@ export default function useImage(
 			imageUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
 			alt: image.title,
 			lazy: false,
+			transform: false,
 			width: undefined,
 			height: undefined,
 			previewUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
@@ -144,7 +148,7 @@ export default function useImage(
 		if (options.storageAssetTransform.value === 'all') {
 			if (img.transformationKey) {
 				queries['key'] = img.transformationKey;
-			} else {
+			} else if (img.transform) {
 				if (img.width) queries['width'] = img.width;
 				if (img.height) queries['height'] = img.height;
 			}

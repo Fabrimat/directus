@@ -1077,6 +1077,8 @@ wysiwyg_options:
   directionality: Directionality
   lazy_loading: Lazy Load Image
   lazy_loading_label: Enable Lazy Loading
+  transform: Transform Image
+  transform_label: Allow Image Transformations
 dropdown: Dropdown
 choices: Choices
 choices_option_configured_incorrectly: Choices configured incorrectly

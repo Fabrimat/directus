@@ -398,6 +398,10 @@ function setFocus(val: boolean) {
 							</div>
 						</template>
 						<div class="field half">
+							<div class="type-label">{{ t('wysiwyg_options.transform') }}</div>
+							<v-checkbox v-model="imageSelection.transform" block :label="t('wysiwyg_options.transform_label')" :disabled="!!imageSelection.transformationKey" />
+						</div>
+						<div class="field half">
 							<div class="type-label">{{ t('wysiwyg_options.lazy_loading') }}</div>
 							<v-checkbox v-model="imageSelection.lazy" block :label="t('wysiwyg_options.lazy_loading_label')" />
 						</div>

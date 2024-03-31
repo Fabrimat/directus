@@ -390,11 +390,11 @@ function setFocus(val: boolean) {
 						<template v-if="storageAssetTransform === 'all'">
 							<div class="field half">
 								<div class="type-label">{{ t('width') }}</div>
-								<v-input v-model="imageSelection.width" :disabled="!!imageSelection.transformationKey" />
+								<v-input v-model="imageSelection.width" />
 							</div>
 							<div class="field half-right">
 								<div class="type-label">{{ t('height') }}</div>
-								<v-input v-model="imageSelection.height" :disabled="!!imageSelection.transformationKey" />
+								<v-input v-model="imageSelection.height" />
 							</div>
 						</template>
 						<div class="field half">

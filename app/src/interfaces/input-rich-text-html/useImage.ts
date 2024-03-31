@@ -68,8 +68,8 @@ export default function useImage(
 				const imageUrlParams = imageUrl ? new URL(imageUrl).searchParams : undefined;
 				const alt = node.getAttribute('alt');
 				const lazy = node.getAttribute('loading') === 'lazy';
-				const width = Number(imageUrlParams?.get('width') || undefined) || undefined;
-				const height = Number(imageUrlParams?.get('height') || undefined) || undefined;
+				const width = Number(imageUrlParams?.get('width') || node.getAttribute('width') || undefined) || undefined;
+				const height = Number(imageUrlParams?.get('height') || node.getAttribute('height') || undefined) || undefined;
 				const transformationKey = imageUrlParams?.get('key') || undefined;
 
 				if (imageUrl === null || alt === null) {
@@ -122,8 +122,8 @@ export default function useImage(
 			imageUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
 			alt: image.title,
 			lazy: false,
-			width: image.width,
-			height: image.height,
+			width: undefined,
+			height: undefined,
 			previewUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
 		};
 	}
@@ -145,8 +145,8 @@ export default function useImage(
 			if (img.transformationKey) {
 				queries['key'] = img.transformationKey;
 			} else {
-				queries['width'] = img.width;
-				queries['height'] = img.height;
+				if (img.width) queries['width'] = img.width;
+				if (img.height) queries['height'] = img.height;
 			}
 		} else if (options.storageAssetTransform.value === 'presets') {
 			if (img.transformationKey) {
@@ -155,7 +155,7 @@ export default function useImage(
 		}
 
 		const resizedImageUrl = addQueryToPath(newURL.toString(), queries);
-		const imageHtml = `<img src="${resizedImageUrl}" alt="${img.alt}" ${img.lazy ? 'loading="lazy" ' : ''}/>`;
+		const imageHtml = `<img src="${resizedImageUrl}" alt="${img.alt}" ${img.lazy ? 'loading="lazy" ' : ''} ${img.width ? 'width=' + img.width : ''} ${img.height ? 'height=' + img.height : ''}/>`;
 		editor.value.selection.setContent(imageHtml);
 		editor.value.undoManager.add();
 		closeImageDrawer();

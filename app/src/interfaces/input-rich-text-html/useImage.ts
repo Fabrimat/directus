@@ -126,8 +126,8 @@ export default function useImage(
 			alt: image.title,
 			lazy: false,
 			transform: false,
-			width: undefined,
-			height: undefined,
+			width: image.width,
+			height: image.height,
 			previewUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
 		};
 	}

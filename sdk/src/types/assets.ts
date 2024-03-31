@@ -10,7 +10,7 @@ export type AssetsQuery =
 			height?: number;
 			quality?: number;
 			withoutEnlargement?: boolean;
-			format?: 'auto' | 'jpg' | 'png' | 'webp' | 'tiff';
+			format?: 'auto' | 'jpg' | 'png' | 'webp' | 'tiff' | 'avif';
 			focal_point_x?: number;
 			focal_point_y?: number;
 			transforms?: [string, ...any[]][];

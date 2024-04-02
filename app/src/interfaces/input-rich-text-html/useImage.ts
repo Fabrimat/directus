@@ -124,7 +124,7 @@ export default function useImage(
 		imageSelection.value = {
 			imageUrl: replaceUrlAccessToken(assetUrl, imageToken.value),
 			alt: image.title,
-			lazy: false,
+			lazy: true,
 			transform: false,
 			width: image.width,
 			height: image.height,

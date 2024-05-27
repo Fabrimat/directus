@@ -72,7 +72,7 @@ export const REFRESH_COOKIE_OPTIONS: CookieOptions = {
 };
 
 export const SESSION_COOKIE_OPTIONS: CookieOptions = {
-	httpOnly: env['SESSION_COOKIE_HTTPONLY'] as string,
+	httpOnly: Boolean(env['SESSION_COOKIE_HTTPONLY'] as string),
 	domain: env['SESSION_COOKIE_DOMAIN'] as string,
 	maxAge: getMilliseconds(env['SESSION_COOKIE_TTL'] as string),
 	secure: Boolean(env['SESSION_COOKIE_SECURE']),
